@@ -10,6 +10,9 @@ type AboutPage = {
 
 const ABOUT_QUERY = `*[_type == "aboutPage"][0]{ title, body }`
 
+// Re-fetch from Sanity at most once a minute so Studio edits show up without a redeploy.
+export const revalidate = 60
+
 export async function generateMetadata() {
     const page = await client.fetch<AboutPage | null>(ABOUT_QUERY)
     return {

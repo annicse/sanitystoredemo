@@ -20,6 +20,9 @@ const PRODUCTS_QUERY = `*[_type == "product" && defined(slug.current)] | order(_
   image
 }`
 
+// Re-fetch from Sanity at most once a minute so Studio edits show up without a redeploy.
+export const revalidate = 60
+
 export default async function Home() {
   const products = await client.fetch<Product[]>(PRODUCTS_QUERY)
 
