@@ -97,7 +97,7 @@ The two static pages use stale-while-revalidate: once the 60 second window has p
 
 ## Accessibility
 
-The storefront (not the Sanity Studio) was reviewed against WCAG 2.2 level AA.
+The storefront (not the Sanity Studio) targets WCAG 2.2 level AA. This is a self-check with the tools below, not a formal conformance audit.
 
 **What was checked, and how**
 
@@ -114,10 +114,10 @@ The storefront (not the Sanity Studio) was reviewed against WCAG 2.2 level AA.
 - Icon-style controls (`+`, `-`, Remove) have accessible names that include the product name; the cart shows a loading state instead of a false "empty" message while it is read from storage; focus moves to the cart heading after an item is removed.
 - Product card and cart thumbnails use empty `alt` text because the product name sits right next to them; the product page image uses the product name as alt text.
 - A single `h1` per page with a logical heading order; decorative emoji are hidden from screen readers.
-- Light theme only (the earlier dark-mode override had insufficient contrast); `prefers-reduced-motion` is respected (the shop currently has no animations).
+- Light theme only; `prefers-reduced-motion` is respected (the shop currently has no animations).
 - Interactive targets are at least 24x24 CSS pixels.
 
-**Not covered** (be sceptical of any claim to the contrary)
+**Not covered**
 
 - Automated tools find only a subset of issues. The site has **not** been tested with a screen reader (VoiceOver, NVDA) or with 200% zoom and 320px reflow.
 - The Sanity Studio is a third-party UI and was not audited.
