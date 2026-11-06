@@ -1,11 +1,14 @@
+import { cache } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import type { SanityImageSource } from '@sanity/image-url'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import AddToCartButton from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/format'
+import { SITE_NAME, truncate } from '@/lib/site'
 
 type Product = {
     _id: string
@@ -25,13 +28,55 @@ const PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
   image
 }`
 
-export default async function ProductPage({
-    params,
-}: {
-    params: Promise<{ slug: string }>
-}) {
+type PageProps = { params: Promise<{ slug: string }> }
+
+// Shared by generateMetadata and the page so Sanity is only queried once per request.
+const getProduct = cache((slug: string) =>
+    client.fetch<Product | null>(PRODUCT_QUERY, { slug })
+)
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { slug } = await params
-    const product = await client.fetch<Product | null>(PRODUCT_QUERY, { slug })
+    const product = await getProduct(slug)
+
+    if (!product) return { title: 'Product not found' }
+
+    const description = product.description?.trim()
+        ? truncate(product.description)
+        : `${product.name} for ${formatPrice(product.price)} at ${SITE_NAME}.`
+    const ogImage = product.image
+        ? {
+              url: urlFor(product.image).width(1200).height(630).fit('crop').url(),
+              width: 1200,
+              height: 630,
+              alt: product.name,
+          }
+        : undefined
+
+    return {
+        title: product.name,
+        description,
+        alternates: { canonical: `/products/${product.slug}` },
+        openGraph: {
+            type: 'website',
+            siteName: SITE_NAME,
+            title: `${product.name} | ${SITE_NAME}`,
+            description,
+            url: `/products/${product.slug}`,
+            images: ogImage ? [ogImage] : undefined,
+        },
+        twitter: {
+            card: ogImage ? 'summary_large_image' : 'summary',
+            title: `${product.name} | ${SITE_NAME}`,
+            description,
+            images: ogImage ? [ogImage.url] : undefined,
+        },
+    }
+}
+
+export default async function ProductPage({ params }: PageProps) {
+    const { slug } = await params
+    const product = await getProduct(slug)
 
     if (!product) notFound()
 
