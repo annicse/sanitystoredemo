@@ -2,8 +2,12 @@
 
 import {
     createContext,
+    useCallback,
     useContext,
+    useEffect,
     useMemo,
+    useRef,
+    useState,
     useSyncExternalStore,
     type ReactNode,
 } from 'react'
@@ -32,6 +36,12 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | null>(null)
 
 export const STORAGE_KEY = 'cart'
+
+/** The checkout API ignores line items above this quantity, so the UI never allows more. */
+export const MAX_QUANTITY = 99
+
+/** How long a status message stays in the live region, in milliseconds. */
+const ANNOUNCEMENT_TIMEOUT = 5000
 
 /*
  * The cart lives in localStorage and React subscribes to it with
@@ -112,6 +122,14 @@ const subscribeNever = () => () => {}
 const getLoadedOnClient = () => true
 const getLoadedOnServer = () => false
 
+function itemsLabel(count: number): string {
+    return count === 0 ? 'Cart is empty.' : `Cart has ${count} ${count === 1 ? 'item' : 'items'}.`
+}
+
+function countItems(items: CartItem[]): number {
+    return items.reduce((sum, i) => sum + i.quantity, 0)
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
     const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
     const loaded = useSyncExternalStore(
@@ -121,45 +139,97 @@ export function CartProvider({ children }: { children: ReactNode }) {
     )
     const items = useMemo(() => parseCart(raw), [raw])
 
-    const value = useMemo<CartContextType>(() => {
-        const addItem: CartContextType['addItem'] = (item) => {
+    // Text for the screen-reader-only live region rendered below.
+    const [announcement, setAnnouncement] = useState('')
+    const announcementTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+        undefined
+    )
+
+    useEffect(() => () => clearTimeout(announcementTimer.current), [])
+
+    const announce = useCallback((message: string) => {
+        setAnnouncement(message)
+        clearTimeout(announcementTimer.current)
+        announcementTimer.current = setTimeout(
+            () => setAnnouncement(''),
+            ANNOUNCEMENT_TIMEOUT
+        )
+    }, [])
+
+    const addItem = useCallback<CartContextType['addItem']>(
+        (item) => {
             const current = readCart()
             const existing = current.find((i) => i.id === item.id)
-            writeCart(
-                existing
-                    ? current.map((i) =>
-                          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-                      )
-                    : [...current, { ...item, quantity: 1 }]
-            )
-        }
 
-        const removeItem = (id: string) => {
-            writeCart(readCart().filter((i) => i.id !== id))
-        }
+            if (existing && existing.quantity >= MAX_QUANTITY) {
+                announce(`Maximum quantity of ${MAX_QUANTITY} reached for ${item.name}.`)
+                return
+            }
 
-        const updateQuantity = (id: string, quantity: number) => {
+            const next = existing
+                ? current.map((i) =>
+                      i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+                  )
+                : [...current, { ...item, quantity: 1 }]
+            writeCart(next)
+            announce(`${item.name} added to cart. ${itemsLabel(countItems(next))}`)
+        },
+        [announce]
+    )
+
+    const removeItem = useCallback(
+        (id: string) => {
+            const current = readCart()
+            const removed = current.find((i) => i.id === id)
+            const next = current.filter((i) => i.id !== id)
+            writeCart(next)
+            if (removed) {
+                announce(
+                    `${removed.name} removed from cart. ${itemsLabel(countItems(next))}`
+                )
+            }
+        },
+        [announce]
+    )
+
+    const updateQuantity = useCallback(
+        (id: string, quantity: number) => {
             if (quantity < 1) return removeItem(id)
-            writeCart(
-                readCart().map((i) => (i.id === id ? { ...i, quantity } : i))
-            )
-        }
+            const capped = Math.min(Math.floor(quantity), MAX_QUANTITY)
+            const current = readCart()
+            const target = current.find((i) => i.id === id)
+            if (!target) return
+            writeCart(current.map((i) => (i.id === id ? { ...i, quantity: capped } : i)))
+            announce(`${target.name}: quantity ${capped}.`)
+        },
+        [announce, removeItem]
+    )
 
-        const clearCart = () => writeCart([])
+    // Used after a completed checkout; deliberately silent.
+    const clearCart = useCallback(() => writeCart([]), [])
 
-        return {
+    const value = useMemo<CartContextType>(
+        () => ({
             items,
             loaded,
-            totalQuantity: items.reduce((sum, i) => sum + i.quantity, 0),
+            totalQuantity: countItems(items),
             totalPrice: items.reduce((sum, i) => sum + i.price * i.quantity, 0),
             addItem,
             removeItem,
             updateQuantity,
             clearCart,
-        }
-    }, [items, loaded])
+        }),
+        [items, loaded, addItem, removeItem, updateQuantity, clearCart]
+    )
 
-    return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+    return (
+        <CartContext.Provider value={value}>
+            {children}
+            <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                {announcement}
+            </div>
+        </CartContext.Provider>
+    )
 }
 
 export function useCart() {

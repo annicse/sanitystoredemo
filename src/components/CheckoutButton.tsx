@@ -31,13 +31,21 @@ export default function CheckoutButton() {
     return (
         <div className="text-right">
             <button
+                type="button"
                 onClick={handleCheckout}
                 disabled={loading}
-                className="rounded-lg bg-black px-6 py-3 text-white hover:bg-gray-800 disabled:opacity-50"
+                aria-busy={loading}
+                className="min-h-11 rounded-lg bg-black px-6 py-3 text-white hover:bg-gray-800 disabled:opacity-50"
             >
                 {loading ? 'Redirecting...' : 'Checkout'}
             </button>
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            {/* Both regions stay in the DOM so screen readers announce changes to their content. */}
+            <p role="status" className="sr-only">
+                {loading ? 'Redirecting to secure checkout.' : ''}
+            </p>
+            <p role="alert" className="mt-2 text-sm text-red-700">
+                {error}
+            </p>
         </div>
     )
 }
