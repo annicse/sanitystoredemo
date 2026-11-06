@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { SanityImageSource } from '@sanity/image-url'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
+import { formatPrice } from '@/lib/format'
 
 type Product = {
   _id: string
@@ -42,7 +43,7 @@ export default async function Home() {
               />
             )}
             <h2 className="mt-2 font-medium group-hover:underline">{p.name}</h2>
-            <p className="text-gray-600">${p.price}</p>
+            <p className="text-gray-600">{formatPrice(p.price)}</p>
           </Link>
         ))}
       </div>

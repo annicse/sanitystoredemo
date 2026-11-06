@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
 import CheckoutButton from '@/components/CheckoutButton'
+import { formatPrice } from '@/lib/format'
 
 export default function CartPage() {
     const { items, totalPrice, updateQuantity, removeItem } = useCart()
@@ -44,7 +45,7 @@ export default function CartPage() {
                             >
                                 {item.name}
                             </Link>
-                            <p className="text-gray-600">${item.price}</p>
+                            <p className="text-gray-600">{formatPrice(item.price)}</p>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -74,7 +75,7 @@ export default function CartPage() {
             </ul>
 
             <div className="mt-6 flex items-center justify-between border-t pt-4">
-                <p className="text-xl font-bold">Total: ${totalPrice.toFixed(2)}</p>
+                <p className="text-xl font-bold">Total: {formatPrice(totalPrice)}</p>
                 <CheckoutButton />
             </div>
         </main>

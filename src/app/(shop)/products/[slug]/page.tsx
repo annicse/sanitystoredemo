@@ -5,6 +5,7 @@ import type { SanityImageSource } from '@sanity/image-url'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import AddToCartButton from '@/components/AddToCartButton'
+import { formatPrice } from '@/lib/format'
 
 type Product = {
     _id: string
@@ -53,7 +54,7 @@ export default async function ProductPage({
 
                 <div>
                     <h1 className="text-3xl font-bold">{product.name}</h1>
-                    <p className="mt-2 text-2xl text-gray-700">${product.price}</p>
+                    <p className="mt-2 text-2xl text-gray-700">{formatPrice(product.price)}</p>
                     {product.description && (
                         <p className="mt-4 text-gray-600">{product.description}</p>
                     )}
