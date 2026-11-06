@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import type { SanityImageSource } from '@sanity/image-url'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 
@@ -8,7 +9,7 @@ type Product = {
   name: string
   slug: string
   price: number
-  image?: any
+  image?: SanityImageSource
 }
 
 const PRODUCTS_QUERY = `*[_type == "product" && defined(slug.current)] | order(_createdAt desc) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import type { SanityImageSource } from '@sanity/image-url'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 
@@ -11,7 +12,7 @@ type SanityProduct = {
     _id: string
     name: string
     price: number
-    image?: any
+    image?: SanityImageSource
 }
 
 export async function POST(req: Request) {
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
         }
 
-        // আসল দাম Sanity থেকে আনো (ব্রাউজারের দাম বিশ্বাস করা হয় না)
+        // Fetch the real prices from Sanity (prices sent by the browser are never trusted)
         const ids = items.map((i) => i.id)
         const products = await client.fetch<SanityProduct[]>(
             `*[_type == "product" && _id in $ids]{ _id, name, price, image }`,
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
                     quantity,
                     price_data: {
                         currency: 'usd',
-                        unit_amount: Math.round(product.price * 100), // সেন্টে
+                        unit_amount: Math.round(product.price * 100), // in cents
                         product_data: {
                             name: product.name,
                             images: product.image

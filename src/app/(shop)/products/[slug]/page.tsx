@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { SanityImageSource } from '@sanity/image-url'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import AddToCartButton from '@/components/AddToCartButton'
@@ -11,7 +12,7 @@ type Product = {
     slug: string
     price: number
     description?: string
-    image?: any
+    image?: SanityImageSource
 }
 
 const PRODUCT_QUERY = `*[_type == "product" && slug.current == $slug][0]{
