@@ -30,16 +30,16 @@ export default async function AboutPage() {
     if (!page) notFound()
 
     return (
-        <main className="mx-auto max-w-3xl p-6">
+        <div className="mx-auto max-w-3xl p-6">
             <h1 className="text-3xl font-bold">{page.title}</h1>
 
             <div className="mt-6">
                 {page.body && <PortableText value={page.body} />}
             </div>
 
-            <Link href="/" className="mt-8 inline-block underline">
+            <Link href="/" className="mt-8 inline-block py-2 underline">
                 ← Back to shop
             </Link>
-        </main>
+        </div>
     )
 }

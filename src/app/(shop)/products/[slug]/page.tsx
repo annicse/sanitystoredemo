@@ -81,8 +81,8 @@ export default async function ProductPage({ params }: PageProps) {
     if (!product) notFound()
 
     return (
-        <main className="mx-auto max-w-4xl p-6">
-            <Link href="/" className="text-sm text-gray-600 hover:underline">
+        <div className="mx-auto max-w-4xl p-6">
+            <Link href="/" className="inline-block py-2 text-sm text-gray-700 hover:underline">
                 ← Back to shop
             </Link>
 
@@ -99,9 +99,9 @@ export default async function ProductPage({ params }: PageProps) {
 
                 <div>
                     <h1 className="text-3xl font-bold">{product.name}</h1>
-                    <p className="mt-2 text-2xl text-gray-700">{formatPrice(product.price)}</p>
+                    <p className="mt-2 text-2xl text-gray-800">{formatPrice(product.price)}</p>
                     {product.description && (
-                        <p className="mt-4 text-gray-600">{product.description}</p>
+                        <p className="mt-4 text-gray-700">{product.description}</p>
                     )}
 
                     <AddToCartButton
@@ -117,6 +117,6 @@ export default async function ProductPage({ params }: PageProps) {
                     />
                 </div>
             </div>
-        </main>
+        </div>
     )
 }
