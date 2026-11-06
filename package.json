@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "a11y": "node scripts/a11y-check.mjs"
   },
   "dependencies": {
     "@portabletext/react": "^8.0.1",
@@ -21,12 +22,15 @@
     "styled-components": "^6.6.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.4",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "playwright-core": "^1.65.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
